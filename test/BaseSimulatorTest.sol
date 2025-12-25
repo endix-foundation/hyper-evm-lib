@@ -11,11 +11,36 @@ import {CoreSimulatorLib} from "./simulation/CoreSimulatorLib.sol";
 
 /**
  * @title BaseSimulatorTest
- * @notice Base test contract that sets up the HyperCore simulation
+ * @notice Base test contract that sets up the HyperCore simulation.
+ *
+ * @dev Supports two modes controlled by environment variables:
+ *
+ *   OFFLINE MODE (default):
+ *     - No fork, pure local simulation
+ *     - Zero RPC calls, fast (~500ms for full suite)
+ *     - All state is mocked - tests are deterministic and isolated
+ *     - Run with: forge test
+ *
+ *   FORK MODE:
+ *     - Forks real Hyperliquid chain state
+ *     - Falls back to real chain data for unmocked state
+ *     - Useful for integration testing with real token info, prices, etc.
+ *     - Run with: FORK_MODE=true forge test
+ *
+ *   Environment variables:
+ *     - FORK_MODE: Set to "true" to enable fork mode (default: offline)
+ *     - HYPERLIQUID_RPC: RPC URL for fork mode (default: https://rpc.hyperliquid.xyz/evm)
+ *
+ *   Examples:
+ *     forge test                                              # Offline mode (fast, no RPC)
+ *     FORK_MODE=true forge test                               # Fork mode with public RPC
+ *     FORK_MODE=true HYPERLIQUID_RPC=https://paid.rpc forge test  # Fork mode with paid RPC
  */
 abstract contract BaseSimulatorTest is Test {
     using PrecompileLib for address;
     using HLConversions for *;
+
+    string public constant DEFAULT_RPC = "https://rpc.hyperliquid.xyz/evm";
 
     HyperCore public hyperCore;
 
@@ -32,10 +57,20 @@ abstract contract BaseSimulatorTest is Test {
     address user = makeAddr("user");
 
     function setUp() public virtual {
-        string memory hyperliquidRpc = "https://rpc.hyperliquid.xyz/evm";
-        vm.createSelectFork(hyperliquidRpc);
+        // Check if fork mode is enabled
+        bool forkMode = vm.envOr("FORK_MODE", false);
 
-        hyperCore = CoreSimulatorLib.init();
+        if (forkMode) {
+            // Fork mode: use RPC (custom or default)
+            string memory rpcUrl = vm.envOr("HYPERLIQUID_RPC", DEFAULT_RPC);
+            vm.createSelectFork(rpcUrl);
+            hyperCore = CoreSimulatorLib.init();
+            // useRealL1Read stays true - fall back to real chain for unmocked data
+        } else {
+            // Offline mode: pure simulation, no RPC calls
+            hyperCore = CoreSimulatorLib.init();
+            hyperCore.setUseRealL1Read(false);
+        }
 
         hyperCore.forceAccountActivation(user);
         hyperCore.forceSpotBalance(user, USDC_TOKEN, 1000e8);
