@@ -167,6 +167,30 @@ contract CoreView is CoreState {
         return _accounts[account].activated;
     }
 
+    function readL1BlockNumber() public view returns (uint64) {
+        // If not set, return current EVM block number as sensible default
+        // This allows tests to work without explicitly setting it
+        if (_l1BlockNumber == 0) {
+            return uint64(block.number);
+        }
+        return _l1BlockNumber;
+    }
+
+    function readTokenSupply(uint64 token) public view returns (PrecompileLib.TokenSupply memory) {
+        TokenSupplyData storage data = _tokenSupply[token];
+        return PrecompileLib.TokenSupply({
+            maxSupply: data.maxSupply,
+            totalSupply: data.totalSupply,
+            circulatingSupply: data.circulatingSupply,
+            futureEmissions: data.futureEmissions,
+            nonCirculatingUserBalances: new PrecompileLib.UserBalance[](0)
+        });
+    }
+
+    function readBbo(uint64 asset) public view returns (PrecompileLib.Bbo memory) {
+        return _bbo[asset];
+    }
+
     function readAccountMarginSummary(uint16 perp_dex_index, address user)
         public
         returns (PrecompileLib.AccountMarginSummary memory)

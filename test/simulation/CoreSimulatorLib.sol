@@ -186,6 +186,24 @@ library CoreSimulatorLib {
         hyperCore.setPerpMakerFee(bps);
     }
 
+    function setL1BlockNumber(uint64 blockNum) internal {
+        hyperCore.setL1BlockNumber(blockNum);
+    }
+
+    function setTokenSupply(
+        uint64 token,
+        uint64 maxSupply,
+        uint64 totalSupply,
+        uint64 circulatingSupply,
+        uint64 futureEmissions
+    ) internal {
+        hyperCore.setTokenSupply(token, maxSupply, totalSupply, circulatingSupply, futureEmissions);
+    }
+
+    function setBbo(uint64 asset, uint64 bid, uint64 ask) internal {
+        hyperCore.setBbo(asset, bid, ask);
+    }
+
     function forcePerpLeverage(address account, uint16 perp, uint32 leverage) internal {
         hyperCore.forcePerpPositionLeverage(account, perp, leverage);
     }

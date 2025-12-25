@@ -81,6 +81,21 @@ contract CoreState is StdCheats {
     mapping(uint32 perpIndex => uint64 oraclePrice) internal _perpOraclePrice;
     mapping(uint32 spotMarketId => uint64 spotPrice) internal _spotPrice;
 
+    // L1 block number simulation
+    uint64 internal _l1BlockNumber;
+
+    // Token supply simulation (stored as individual fields to avoid storage copy issues with dynamic arrays)
+    struct TokenSupplyData {
+        uint64 maxSupply;
+        uint64 totalSupply;
+        uint64 circulatingSupply;
+        uint64 futureEmissions;
+    }
+    mapping(uint64 token => TokenSupplyData) internal _tokenSupply;
+
+    // Best bid/offer simulation
+    mapping(uint64 asset => PrecompileLib.Bbo) internal _bbo;
+
     mapping(address vault => uint64) internal _vaultEquity;
 
     DoubleEndedQueue.Bytes32Deque internal _withdrawQueue;
@@ -171,6 +186,29 @@ contract CoreState is StdCheats {
     function setPerpMakerFee(uint16 bps) public {
         require(bps <= FEE_DENOMINATOR, "fee too high");
         perpMakerFee = bps;
+    }
+
+    function setL1BlockNumber(uint64 blockNum) public {
+        _l1BlockNumber = blockNum;
+    }
+
+    function setTokenSupply(
+        uint64 token,
+        uint64 maxSupply,
+        uint64 totalSupply,
+        uint64 circulatingSupply,
+        uint64 futureEmissions
+    ) public {
+        _tokenSupply[token] = TokenSupplyData({
+            maxSupply: maxSupply,
+            totalSupply: totalSupply,
+            circulatingSupply: circulatingSupply,
+            futureEmissions: futureEmissions
+        });
+    }
+
+    function setBbo(uint64 asset, uint64 bid, uint64 ask) public {
+        _bbo[asset] = PrecompileLib.Bbo({bid: bid, ask: ask});
     }
 
     function _initializeAccountWithToken(address _account, uint64 token) internal {

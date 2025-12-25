@@ -100,6 +100,21 @@ contract PrecompileSim {
             return abi.encode(_hyperCore.readAccountMarginSummary(perp_dex_index, user));
         }
 
+        if (address(this) == L1_BLOCK_NUMBER_PRECOMPILE_ADDRESS) {
+            // No data to decode - l1BlockNumber takes no arguments
+            return abi.encode(_hyperCore.readL1BlockNumber());
+        }
+
+        if (address(this) == TOKEN_SUPPLY_PRECOMPILE_ADDRESS) {
+            uint64 token = abi.decode(data, (uint64));
+            return abi.encode(_hyperCore.readTokenSupply(token));
+        }
+
+        if (address(this) == BBO_PRECOMPILE_ADDRESS) {
+            uint64 asset = abi.decode(data, (uint64));
+            return abi.encode(_hyperCore.readBbo(asset));
+        }
+
         return _makeRpcCall(address(this), data);
     }
 
