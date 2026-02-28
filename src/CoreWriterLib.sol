@@ -52,7 +52,7 @@ library CoreWriterLib {
         if (coreAmount == 0) revert CoreWriterLib__EvmAmountTooSmall(evmAmount);
         address systemAddress = getSystemAddress(token);
         if (HLConstants.isUsdc(token)) {
-            IERC20(HLConstants.usdc()).approve(address(coreDepositWallet), evmAmount);
+            IERC20(HLConstants.usdc()).forceApprove(address(coreDepositWallet), evmAmount);
             coreDepositWallet.deposit(evmAmount, uint32(type(uint32).max));
         } else if (isHype(token)) {
             (bool success,) = systemAddress.call{value: evmAmount}("");
@@ -77,7 +77,7 @@ library CoreWriterLib {
         uint64 coreAmount = HLConversions.evmToWei(HLConstants.USDC_TOKEN_INDEX, evmAmount);
         if (coreAmount == 0) revert CoreWriterLib__EvmAmountTooSmall(evmAmount);
 
-        IERC20(HLConstants.usdc()).approve(address(coreDepositWallet), evmAmount);
+        IERC20(HLConstants.usdc()).forceApprove(address(coreDepositWallet), evmAmount);
         coreDepositWallet.depositFor(recipient, evmAmount, destinationDex);
     }
 

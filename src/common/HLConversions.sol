@@ -22,6 +22,8 @@ library HLConversions {
             } else if (info.evmExtraWeiDecimals < 0) {
                 uint256 amount = evmAmount * (10 ** uint8(-info.evmExtraWeiDecimals));
                 return SafeCast.toUint64(amount);
+            } else {
+                return SafeCast.toUint64(evmAmount);
             }
         } else if (HLConstants.isHype(token)) {
             return SafeCast.toUint64(evmAmount / (10 ** HLConstants.HYPE_EVM_EXTRA_DECIMALS));
@@ -41,6 +43,8 @@ library HLConversions {
                 return (uint256(amountWei) * (10 ** uint8(info.evmExtraWeiDecimals)));
             } else if (info.evmExtraWeiDecimals < 0) {
                 return amountWei / (10 ** uint8(-info.evmExtraWeiDecimals));
+            } else {
+                return uint256(amountWei);
             }
         } else if (HLConstants.isHype(token)) {
             return (uint256(amountWei) * (10 ** HLConstants.HYPE_EVM_EXTRA_DECIMALS));
